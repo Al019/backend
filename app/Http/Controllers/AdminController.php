@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RequestCredential;
+use App\Models\StudentLink;
 use App\Models\User;
 use App\Models\Staff;
 use App\Models\Submit;
 use App\Models\Student;
 use App\Models\Document;
 use App\Models\Information;
+use Hash;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Exports\StudentExport;
 use App\Imports\StudentImport;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
@@ -212,5 +216,141 @@ class AdminController extends Controller
                 'submit_message' => $request->others === null ? $request->message : $request->others,
                 'submit_status' => 'resubmit'
             ]);
+    }
+
+    public function getCredentialRequest(Request $request)
+    {
+        $credentialRequests = \App\Models\Request::where('request_status', $request->status)
+            ->with('student.information', 'request_credential.credential', 'payment')
+            ->get();
+
+        $statusCounts = [
+            'review' => \App\Models\Request::where('request_status', 'review')->count(),
+            'pay' => \App\Models\Request::where('request_status', 'pay')->count(),
+            'process' => \App\Models\Request::where('request_status', 'process')->count(),
+            'receive' => \App\Models\Request::where('request_status', 'receive')->count(),
+        ];
+
+        return response()->json([
+            'requests' => $credentialRequests,
+            'counts' => $statusCounts
+        ]);
+    }
+
+    public function getRequestDetail(Request $request)
+    {
+        $reqDetail = \App\Models\Request::where('request_number', $request->request_number)
+            ->with('student.information', 'request_credential.credential', 'request_credential.credential_purpose.purpose', 'payment')
+            ->first();
+
+        return response()->json($reqDetail);
+    }
+
+    public function editPage(Request $request)
+    {
+        RequestCredential::where('id', $request->id)
+            ->update([
+                'page' => $request->page
+            ]);
+    }
+
+    public function requestConfirm(Request $request)
+    {
+        $reqCred = RequestCredential::where('request_id', $request->id)
+            ->whereHas('credential')
+            ->first();
+
+        if ($reqCred->credential->on_page === 1 && $reqCred->page === 1) {
+            throw ValidationException::withMessages([
+                'message' => 'Please edit the pages.',
+            ]);
+        }
+
+        \App\Models\Request::where('id', $request->id)
+            ->update([
+                'request_status' => 'pay'
+            ]);
+    }
+
+    public function requestDecline(Request $request)
+    {
+        $request->validate([
+            'message' => ['required']
+        ]);
+
+        \App\Models\Request::where('id', $request->id)
+            ->update(attributes: [
+                'request_status' => 'cancel',
+                'request_message' => $request->others === null ? $request->message : $request->others
+            ]);
+
+        if ($request->has('credential_id')) {
+            StudentLink::where('student_id', $request->student_id)
+                ->where('credential_id', $request->credential_id)
+                ->delete();
+        }
+    }
+
+    public function requestProcess(Request $request)
+    {
+        \App\Models\Request::where('id', $request->id)
+            ->update([
+                'request_status' => 'process'
+            ]);
+    }
+
+    public function requestFinish(Request $request)
+    {
+        \App\Models\Request::where('id', $request->id)
+            ->update([
+                'request_status' => 'receive'
+            ]);
+    }
+
+    public function requestRelease(Request $request)
+    {
+        \App\Models\Request::where('id', $request->id)
+            ->update([
+                'request_status' => 'complete'
+            ]);
+
+        RequestCredential::where('request_id', $request->id)
+            ->update([
+                'req_cred_status' => 'release'
+            ]);
+    }
+
+    public function cancelRequest(Request $request)
+    {
+        $request->validate([
+            'password' => ['required'],
+        ]);
+
+        $user_id = $request->user()->id;
+
+        $user = User::find($user_id);
+
+        if (!Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'message' => 'The provided password are incorrect.',
+            ]);
+        }
+
+        \App\Models\Request::where('id', $request->id)
+            ->update([
+                'request_status' => 'cancel',
+                'message' => 'The student requested to the admin to cancel the request.'
+            ]);
+
+        RequestCredential::where('request_id', $request->id)
+            ->update([
+                'page' => '1'
+            ]);
+
+        if ($request->has('credential_id')) {
+            StudentLink::where('student_id', $request->student_id)
+                ->where('credential_id', $request->credential_id)
+                ->delete();
+        }
     }
 }

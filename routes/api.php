@@ -33,6 +33,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/get-softcopy', [AdminController::class, 'getSoftCopy']);
     Route::post('/admin/confirm-submit', [AdminController::class, 'confirmSubmit']);
     Route::post('/admin/decline-submit', [AdminController::class, 'declineSubmit']);
+    Route::get('/admin/get-credential-request', [AdminController::class, 'getCredentialRequest']);
+    Route::get('/admin/get-request-detail', [AdminController::class, 'getRequestDetail']);
+    Route::post('/admin/edit-page', [AdminController::class, 'editPage']);
+    Route::post('/admin/request-confirm', [AdminController::class, 'requestConfirm']);
+    Route::post('/admin/request-decline', [AdminController::class, 'requestDecline']);
+    Route::post('/admin/request-process', [AdminController::class, 'requestProcess']);
+    Route::post('/admin/request-finish', [AdminController::class, 'requestFinish']);
+    Route::post('/admin/request-release', [AdminController::class, 'requestRelease']);
+    Route::post('/admin/cancel-request', [AdminController::class, 'cancelRequest']);
 
     Route::get('/document/get-student-type', [DocumentController::class, 'getStudentType']);
     Route::post('/document/create-document', [DocumentController::class, 'createDocument']);

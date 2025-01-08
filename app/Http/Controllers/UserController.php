@@ -13,7 +13,7 @@ class UserController extends Controller
 
         $data = null;
 
-        if ($user->role === 'admin') {
+        if ($user->role === 'admin' || $user->role === 'staff' || $user->role === 'cashier') {
             $data = User::with('staff.information')
                 ->find($user->id);
         } elseif ($user->role === 'student') {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PasswordMail;
 use App\Models\RequestCredential;
 use App\Models\StudentLink;
 use App\Models\User;
@@ -11,6 +12,7 @@ use App\Models\Student;
 use App\Models\Document;
 use App\Models\Information;
 use Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Exports\StudentExport;
@@ -54,6 +56,8 @@ class AdminController extends Controller
         ]);
 
         $password = Str::random(8);
+
+        Mail::to($request->email_address)->send(new PasswordMail($password));
 
         $user = User::create([
             'password' => bcrypt($password),

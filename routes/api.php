@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CashierController;
 use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\StudentController;
@@ -42,6 +43,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/request-finish', [AdminController::class, 'requestFinish']);
     Route::post('/admin/request-release', [AdminController::class, 'requestRelease']);
     Route::post('/admin/cancel-request', [AdminController::class, 'cancelRequest']);
+
+    Route::get('/cashier/get-credential-request', [CashierController::class, 'getCredentialRequest']);
+    Route::get('/cashier/get-request-detail', [CashierController::class, 'getRequestDetail']);
+    Route::post('/cashier/request-confirm', [CashierController::class, 'requestConfirm']);
 
     Route::get('/document/get-student-type', [DocumentController::class, 'getStudentType']);
     Route::post('/document/create-document', [DocumentController::class, 'createDocument']);

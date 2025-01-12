@@ -280,7 +280,7 @@ class StudentController extends Controller
     {
         RequestCredential::where('request_id', $request->id)
             ->update([
-                'request_credential_status' => 'claim'
+                'reqcred_status' => 'claim'
             ]);
     }
 

@@ -44,6 +44,15 @@ class AdminController extends Controller
         return response()->json($students);
     }
 
+    public function getStudentInformation(Request $request)
+    {
+        $student = Student::where('id_number', $request->id_number)
+            ->with('information')
+            ->first();
+
+        return response()->json($student);
+    }
+
     public function addStaff(Request $request)
     {
         $request->validate([
@@ -225,8 +234,23 @@ class AdminController extends Controller
     public function getCredentialRequest(Request $request)
     {
         $credentialRequests = \App\Models\Request::where('request_status', $request->status)
-            ->with('student.information', 'request_credential.credential', 'payment')
-            ->get();
+            ->with('student.information', 'request_credential.credential');
+
+        if ($request->status == 'pay') {
+            if ($request->selected === 'pending') {
+                $credentialRequests->whereDoesntHave('payment')
+                ->with('payment');
+            } else if ($request->selected === 'paid') {
+                $credentialRequests->whereHas('payment')
+                ->with('payment');
+            } else if ($request->selected === 'all') {
+                $credentialRequests->with('payment');
+            }
+        } else {
+            $credentialRequests->with('payment');
+        }
+
+        $credentialRequests = $credentialRequests->get();
 
         $statusCounts = [
             'review' => \App\Models\Request::where('request_status', 'review')->count(),
@@ -240,6 +264,7 @@ class AdminController extends Controller
             'counts' => $statusCounts
         ]);
     }
+
 
     public function getRequestDetail(Request $request)
     {
@@ -320,7 +345,7 @@ class AdminController extends Controller
 
         RequestCredential::where('request_id', $request->id)
             ->update([
-                'req_cred_status' => 'release'
+                'reqcred_status' => 'release'
             ]);
     }
 

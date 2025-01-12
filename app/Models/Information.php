@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -29,5 +30,10 @@ class Information extends Model
     public function student(): HasOne
     {
         return $this->hasOne(Student::class, 'info_id');
+    }
+
+    public function email_verification(): HasMany
+    {
+        return $this->hasMany(EmailVerification::class, 'info_id');
     }
 }

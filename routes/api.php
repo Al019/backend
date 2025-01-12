@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/import-student', [AdminController::class, 'importStudent']);
     Route::get('/admin/export-student', [AdminController::class, 'exportStudent']);
     Route::get('/admin/get-student', [AdminController::class, 'getStudent']);
+    Route::get('/admin/get-student-information', [AdminController::class, 'getStudentInformation']);
     Route::post('/admin/add-staff', [AdminController::class, 'addStaff']);
     Route::get('/admin/get-staff', [AdminController::class, 'getStaff']);
     Route::get('/admin/get-record', [AdminController::class, 'getRecord']);
@@ -82,3 +83,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+Route::post('/create-new-password', [AuthController::class, 'createNewPassword']);
